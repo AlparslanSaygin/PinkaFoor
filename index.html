@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <title>Produktdatumkontroll</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#008000">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon-192.png" type="image/png">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    .product {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-left: 10px solid transparent;
+    }
+    .expired {
+      border-left-color: red;
+      background-color: #ffe5e5;
+    }
+    .warning {
+      border-left-color: orange;
+      background-color: #fff6e0;
+    }
+    .ok {
+      border-left-color: green;
+      background-color: #e7ffe7;
+    }
+  </style>
+</head>
+<body>
+  <h1>Datumkontroll: Produkter</h1>
+  <div id="productList">Laddar produkter...</div>
+
+  <script>
+    async function fetchProducts() {
+      try {
+        const res = await fetch("https://api.csvgetter.com/demo/ur30LwExfOPWn68KEonl?type=json_records");
+        const data = await res.json();
+        const list = document.getElementById("productList");
+        list.innerHTML = "";
+
+        data.forEach(item => {
+          const daysLeft = parseInt(item["Days left"]);
+          let statusClass = "ok";
+
+          if (daysLeft <= 0) statusClass = "expired";
+          else if (daysLeft <= 3) statusClass = "warning";
+
+          const div = document.createElement("div");
+          div.className = `product ${statusClass}`;
+          div.innerHTML = `
+            <strong>${item["Product Name"]}</strong><br>
+            Utgångsdatum: ${item["Expiration Date"]}<br>
+            Dagar kvar: ${daysLeft}<br>
+            I lager: ${item["SOH"]} st<br>
+            Plats: ${item["Location"]}
+          `;
+          list.appendChild(div);
+        });
+      } catch (err) {
+        console.error("Fel vid hämtning:", err);
+        document.getElementById("productList").innerText = "Kunde inte ladda produkter.";
+      }
+    }
+
+    fetchProducts();
+  </script>
+</body>
+</html>
